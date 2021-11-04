@@ -75,17 +75,17 @@ public class TimeTrackingPlugin extends Plugin
 	private static final String CONTRACT_COMPLETED = "You've completed a Farming Guild Contract. You should return to Guildmaster Jane.";
 
 	private static final Pattern FARMING_PATTERN = Pattern.compile(
-		"(?:A|An)*" +
-			"(?:.*)" +
+		"(?:.*)" +
 			"(?:growing in this |sown in this |planted in this |planted )" +
 			"(?:Farming |farming |tree |fruit tree |anima )*" +
 			"(?:patch|allotment|here)" +
 			"(\\.)*" +
-		"|(It's )(getting |small,).*(darn big|bigger)(\\.)*" +
+		"|(It's )(getting|small,).*(darn big|bigger)(\\.)*" +
 		"|(This is about as big as it gets)(\\.)*" +
 		"|(A Spirit Tree)(\\.)*" +
 		"|(A fully grown )(Attas|Iasor|Kronos)( plant)(\\.)*" +
-		"|(This).*(plant looks like it is almost out of energy)(\\.)*"
+		"|(This).*(plant looks like it is almost out of energy)(\\.)*" +
+		"|(A shrivelled plant\\.)"
 	);
 
 	private static final Pattern HERB_PATTERN = Pattern.compile(
@@ -268,7 +268,8 @@ public class TimeTrackingPlugin extends Plugin
 	{
 		if (event.getType() == ChatMessageType.OBJECT_EXAMINE)
 		{
-			if (HERB_PATTERN.matcher(event.getMessage()).matches())
+			String message = event.getMessage().toLowerCase();
+			if (FARMING_PATTERN.matcher(message).matches())
 			{
 				WorldPoint loc = lastTickLocation;
 
@@ -277,7 +278,57 @@ public class TimeTrackingPlugin extends Plugin
 					return;
 				}
 
-				farmingTracker.updateExamineText(loc, PatchImplementation.HERB);
+//				TODO: remove this and pass the message string to the next function
+//				have function check if there is only 1 patch first, otherwise get the proper patch
+				if (message.contains("herb"))
+				{
+					farmingTracker.updateFarmingText(loc, PatchImplementation.HERB);
+				}
+				else if (message.contains("allotment"))
+				{
+					farmingTracker.updateFarmingText(loc, PatchImplementation.ALLOTMENT);
+				}
+				else if (message.contains("bush"))
+				{
+					farmingTracker.updateFarmingText(loc, PatchImplementation.BUSH);
+				}
+				else if (message.contains("nightshade"))
+				{
+					farmingTracker.updateFarmingText(loc, PatchImplementation.BELLADONNA);
+				}
+				else if (message.contains("bittercap"))
+				{
+					farmingTracker.updateFarmingText(loc, PatchImplementation.MUSHROOM);
+				}
+				else if (message.contains("shrivelled"))
+				{
+					farmingTracker.updateFarmingText(loc, PatchImplementation.HESPORI);
+				}
+				else if (message.contains("fruit tree"))
+				{
+					farmingTracker.updateFarmingText(loc, PatchImplementation.FRUIT_TREE);
+				}
+//				TODO: HOPS, TREE, HARDWOOD, ANIMA, FLOWER
+				else if (message.contains("redwood"))
+				{
+					farmingTracker.updateFarmingText(loc, PatchImplementation.REDWOOD);
+				}
+				else if (message.contains("spirit"))
+				{
+					farmingTracker.updateFarmingText(loc, PatchImplementation.SPIRIT_TREE);
+				}
+				else if (message.contains("cactus"))
+				{
+					farmingTracker.updateFarmingText(loc, PatchImplementation.CACTUS);
+				}
+				else if (message.contains("seaweed"))
+				{
+					farmingTracker.updateFarmingText(loc, PatchImplementation.SEAWEED);
+				}
+				else if (message.contains("calquat"))
+				{
+					farmingTracker.updateFarmingText(loc, PatchImplementation.CALQUAT);
+				}
 			}
 			return;
 		}

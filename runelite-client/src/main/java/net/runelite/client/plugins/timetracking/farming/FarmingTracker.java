@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.Varbits;
@@ -45,12 +46,17 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.vars.Autoweed;
 import net.runelite.api.widgets.WidgetModalMode;
 import net.runelite.client.Notifier;
+import net.runelite.client.chat.ChatColorType;
+import net.runelite.client.chat.ChatMessageBuilder;
+import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneScapeProfile;
 import net.runelite.client.config.RuneScapeProfileType;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.timetracking.SummaryState;
 import net.runelite.client.plugins.timetracking.Tab;
+import net.runelite.client.plugins.timetracking.TabContentPanel;
 import net.runelite.client.plugins.timetracking.TimeTrackingConfig;
 import net.runelite.client.util.Text;
 
@@ -64,6 +70,9 @@ public class FarmingTracker
 	private final TimeTrackingConfig config;
 	private final FarmingWorld farmingWorld;
 	private final Notifier notifier;
+
+	@Inject
+	private ChatMessageManager chatMessageManager;
 
 	private final Map<Tab, SummaryState> summaries = new EnumMap<>(Tab.class);
 
@@ -622,8 +631,23 @@ public class FarmingTracker
 		notifier.notify(stringBuilder.toString());
 	}
 
-	public void updateExamineText(WorldPoint loc, PatchImplementation type)
+	private void writeChatMessage(String predictedTime)
 	{
+		final ChatMessageBuilder message = new ChatMessageBuilder()
+				.append(ChatColorType.NORMAL)
+				.append("Done ")
+				.append(ChatColorType.HIGHLIGHT)
+				.append(predictedTime);
+
+		chatMessageManager.queue(QueuedMessage.builder()
+				.type(ChatMessageType.ITEM_EXAMINE)
+				.runeLiteFormattedMessage(message.build())
+				.build());
+	}
+
+	public void updateFarmingText(WorldPoint loc, PatchImplementation type)
+	{
+		long unixNow = Instant.now().getEpochSecond();
 		Collection<FarmingRegion> regions = farmingWorld.getRegionsForLocation(loc);
 		for (FarmingRegion region : regions)
 		{
@@ -631,7 +655,9 @@ public class FarmingTracker
 			{
 				if (patch.getImplementation().equals(type))
 				{
-//					String str = "Done " + getFormattedEstimate(prediction.getDoneEstimate() - unixNow, config.timeFormatMode());
+					PatchPrediction prediction = predictPatch(patch);
+					String predictedTime = TabContentPanel.getFormattedEstimate(prediction.getDoneEstimate() - unixNow, config.timeFormatMode());
+					writeChatMessage(predictedTime);
 				}
 			}
 		}
