@@ -32,6 +32,8 @@ import java.time.Instant;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
@@ -56,6 +58,7 @@ import static net.runelite.client.plugins.timetracking.TimeTrackingConfig.TIMERS
 import net.runelite.client.plugins.timetracking.clocks.ClockManager;
 import net.runelite.client.plugins.timetracking.farming.FarmingContractManager;
 import net.runelite.client.plugins.timetracking.farming.FarmingTracker;
+import net.runelite.client.plugins.timetracking.farming.PatchImplementation;
 import net.runelite.client.plugins.timetracking.hunter.BirdHouseTracker;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
@@ -70,6 +73,24 @@ import net.runelite.client.util.ImageUtil;
 public class TimeTrackingPlugin extends Plugin
 {
 	private static final String CONTRACT_COMPLETED = "You've completed a Farming Guild Contract. You should return to Guildmaster Jane.";
+
+	private static final Pattern FARMING_PATTERN = Pattern.compile(
+		"(?:A|An)*" +
+			"(?:.*)" +
+			"(?:growing in this |sown in this |planted in this |planted )" +
+			"(?:Farming |farming |tree |fruit tree |anima )*" +
+			"(?:patch|allotment|here)" +
+			"(\\.)*" +
+		"|(It's )(getting |small,).*(darn big|bigger)(\\.)*" +
+		"|(This is about as big as it gets)(\\.)*" +
+		"|(A Spirit Tree)(\\.)*" +
+		"|(A fully grown )(Attas|Iasor|Kronos)( plant)(\\.)*" +
+		"|(This).*(plant looks like it is almost out of energy)(\\.)*"
+	);
+
+	private static final Pattern HERB_PATTERN = Pattern.compile(
+		"(?:.*)(?:herb)(?:.*)(?:in this patch\\.)"
+	);
 
 	@Inject
 	private ClientToolbar clientToolbar;
@@ -245,7 +266,22 @@ public class TimeTrackingPlugin extends Plugin
 	@Subscribe
 	public void onChatMessage(ChatMessage event)
 	{
-		if (event.getType() != ChatMessageType.GAMEMESSAGE || !event.getMessage().equals(CONTRACT_COMPLETED))
+		if (event.getType() == ChatMessageType.OBJECT_EXAMINE)
+		{
+			if (HERB_PATTERN.matcher(event.getMessage()).matches())
+			{
+				WorldPoint loc = lastTickLocation;
+
+				if (loc == null || loc.getRegionID() != lastTickLocation.getRegionID())
+				{
+					return;
+				}
+
+				farmingTracker.updateExamineText(loc, PatchImplementation.HERB);
+			}
+			return;
+		}
+		else if (event.getType() != ChatMessageType.GAMEMESSAGE || !event.getMessage().equals(CONTRACT_COMPLETED))
 		{
 			return;
 		}

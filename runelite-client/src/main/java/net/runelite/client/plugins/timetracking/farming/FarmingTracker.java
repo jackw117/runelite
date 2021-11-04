@@ -621,4 +621,20 @@ public class FarmingTracker
 
 		notifier.notify(stringBuilder.toString());
 	}
+
+	public void updateExamineText(WorldPoint loc, PatchImplementation type)
+	{
+		Collection<FarmingRegion> regions = farmingWorld.getRegionsForLocation(loc);
+		for (FarmingRegion region : regions)
+		{
+			for (FarmingPatch patch : region.getPatches())
+			{
+				if (patch.getImplementation().equals(type))
+				{
+//					String str = "Done " + getFormattedEstimate(prediction.getDoneEstimate() - unixNow, config.timeFormatMode());
+				}
+			}
+		}
+		int b = 1;
+	}
 }
