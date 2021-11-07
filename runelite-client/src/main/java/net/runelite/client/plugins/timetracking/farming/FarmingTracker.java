@@ -28,6 +28,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -35,6 +37,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
@@ -631,13 +635,116 @@ public class FarmingTracker
 		notifier.notify(stringBuilder.toString());
 	}
 
-	private void writeChatMessage(String predictedTime)
+	private PatchImplementation getPatchImplementationFromString(String message)
 	{
-		final ChatMessageBuilder message = new ChatMessageBuilder()
-				.append(ChatColorType.NORMAL)
-				.append("Done ")
-				.append(ChatColorType.HIGHLIGHT)
-				.append(predictedTime);
+		PatchImplementation type = null;
+		if (message.contains("herb"))
+		{
+			type = PatchImplementation.HERB;
+		}
+		else if (message.contains("allotment"))
+		{
+			type = PatchImplementation.ALLOTMENT;
+		}
+		else if (message.contains("bush"))
+		{
+			type = PatchImplementation.BUSH;
+		}
+		else if (message.contains("nightshade"))
+		{
+			type = PatchImplementation.BELLADONNA;
+		}
+		else if (message.contains("bittercap"))
+		{
+			type = PatchImplementation.MUSHROOM;
+		}
+		else if (message.contains("shrivelled"))
+		{
+			type = PatchImplementation.HESPORI;
+		}
+		else if (message.contains("fruit tree"))
+		{
+			type = PatchImplementation.FRUIT_TREE;
+		}
+//				TODO: HOPS, TREE, HARDWOOD, ANIMA, FLOWER, GRAPES, COMPOST
+		else if (message.contains("redwood"))
+		{
+			type = PatchImplementation.REDWOOD;
+		}
+		else if (message.contains("spirit"))
+		{
+			type = PatchImplementation.SPIRIT_TREE;
+		}
+		else if (message.contains("cactus"))
+		{
+			type = PatchImplementation.CACTUS;
+		}
+		else if (message.contains("seaweed"))
+		{
+			type = PatchImplementation.SEAWEED;
+		}
+		else if (message.contains("calquat"))
+		{
+			type = PatchImplementation.CALQUAT;
+		}
+		else if (message.contains("celastrus"))
+		{
+			type = PatchImplementation.CELASTRUS;
+		}
+		else if (message.contains("crystal"))
+		{
+			type = PatchImplementation.CRYSTAL_TREE;
+		}
+
+		return type;
+	}
+
+	private void writePredictedTime(List<FarmingPatch> currentPatches)
+	{
+		final ChatMessageBuilder message;
+		SortedMap<Long, String> estimates = new TreeMap<>();
+
+		long unixNow = Instant.now().getEpochSecond();
+
+		for (FarmingPatch patch : currentPatches)
+		{
+			PatchPrediction prediction = predictPatch(patch);
+			if (prediction.getCropState().equals(CropState.GROWING) && !prediction.getProduce().equals(Produce.WEEDS))
+			{
+				estimates.put(prediction.getDoneEstimate() - unixNow, prediction.getProduce().getName());
+			}
+		}
+
+		String earliestTime = TabContentPanel.getFormattedEstimate(estimates.firstKey(), config.timeFormatMode());
+		String latestTime = TabContentPanel.getFormattedEstimate(estimates.lastKey(), config.timeFormatMode());
+		String earliestProduce = estimates.get(estimates.firstKey());
+		String latestProduce = estimates.get(estimates.lastKey());
+		String patchType = currentPatches.get(0).getImplementation().toString().toLowerCase(Locale.ENGLISH);
+		String displayedName = earliestProduce.equals(latestProduce)
+				? earliestProduce : patchType.substring(0, 1).toUpperCase() + patchType.substring(1);
+
+		if (earliestTime.equals(latestTime))
+		{
+			message = new ChatMessageBuilder()
+					.append(ChatColorType.HIGHLIGHT)
+					.append(displayedName)
+					.append(ChatColorType.NORMAL)
+					.append(": done ")
+					.append(ChatColorType.NORMAL)
+					.append(earliestTime);
+		}
+		else
+		{
+			message = new ChatMessageBuilder()
+					.append(ChatColorType.HIGHLIGHT)
+					.append(displayedName)
+					.append(ChatColorType.NORMAL)
+					.append(": earliest time done ")
+					.append(ChatColorType.NORMAL)
+					.append(earliestTime)
+					.append(", latest time done ")
+					.append(latestTime);
+		}
 
 		chatMessageManager.queue(QueuedMessage.builder()
 				.type(ChatMessageType.ITEM_EXAMINE)
@@ -645,22 +752,30 @@ public class FarmingTracker
 				.build());
 	}
 
-	public void updateFarmingText(WorldPoint loc, PatchImplementation type)
+	public void updateFarmingText(WorldPoint loc, String message)
 	{
-		long unixNow = Instant.now().getEpochSecond();
+
 		Collection<FarmingRegion> regions = farmingWorld.getRegionsForLocation(loc);
 		for (FarmingRegion region : regions)
 		{
-			for (FarmingPatch patch : region.getPatches())
+			List<FarmingPatch> regionPatches = Arrays.asList(region.getPatches());
+			if (regionPatches.size() == 1)
 			{
-				if (patch.getImplementation().equals(type))
+				writePredictedTime(regionPatches);
+			}
+			else
+			{
+				PatchImplementation type = getPatchImplementationFromString(message);
+				List<FarmingPatch> currentPatches = new ArrayList<>();
+				for (FarmingPatch patch : regionPatches)
 				{
-					PatchPrediction prediction = predictPatch(patch);
-					String predictedTime = TabContentPanel.getFormattedEstimate(prediction.getDoneEstimate() - unixNow, config.timeFormatMode());
-					writeChatMessage(predictedTime);
+					if (patch.getImplementation().equals(type))
+					{
+						currentPatches.add(patch);
+					}
 				}
+				writePredictedTime(currentPatches);
 			}
 		}
-		int b = 1;
 	}
 }
