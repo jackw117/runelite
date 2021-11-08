@@ -646,34 +646,21 @@ public class FarmingTracker
 		{
 			type = PatchImplementation.ALLOTMENT;
 		}
-		else if (message.contains("bush"))
-		{
-			type = PatchImplementation.BUSH;
-		}
-		else if (message.contains("nightshade"))
-		{
-			type = PatchImplementation.BELLADONNA;
-		}
-		else if (message.contains("bittercap"))
-		{
-			type = PatchImplementation.MUSHROOM;
-		}
 		else if (message.contains("shrivelled"))
 		{
 			type = PatchImplementation.HESPORI;
+		}
+		else if (message.contains("bush"))
+		{
+			type = PatchImplementation.BUSH;
 		}
 		else if (message.contains("fruit tree"))
 		{
 			type = PatchImplementation.FRUIT_TREE;
 		}
-//				TODO: HOPS, TREE, HARDWOOD, ANIMA, FLOWER, GRAPES, COMPOST
 		else if (message.contains("redwood"))
 		{
 			type = PatchImplementation.REDWOOD;
-		}
-		else if (message.contains("spirit"))
-		{
-			type = PatchImplementation.SPIRIT_TREE;
 		}
 		else if (message.contains("cactus"))
 		{
@@ -683,17 +670,52 @@ public class FarmingTracker
 		{
 			type = PatchImplementation.SEAWEED;
 		}
-		else if (message.contains("calquat"))
-		{
-			type = PatchImplementation.CALQUAT;
-		}
 		else if (message.contains("celastrus"))
 		{
 			type = PatchImplementation.CELASTRUS;
 		}
+		else if (message.contains("teak") || message.contains("mahogany"))
+		{
+			type = PatchImplementation.HARDWOOD_TREE;
+		}
+		else if (message.contains("big"))
+		{
+			type = PatchImplementation.GRAPES;
+		}
+		else if (message.contains("nightshade"))
+		{
+			type = PatchImplementation.BELLADONNA;
+		}
+		else if (message.contains("bittercap"))
+		{
+			type = PatchImplementation.MUSHROOM;
+		}
+		else if (message.contains("calquat"))
+		{
+			type = PatchImplementation.CALQUAT;
+		}
 		else if (message.contains("crystal"))
 		{
 			type = PatchImplementation.CRYSTAL_TREE;
+		}
+		else if (message.contains("tree"))
+		{
+			type = PatchImplementation.TREE;
+		}
+		else if (message.contains("attas") || message.contains("iasor") || message.contains("kronos"))
+		{
+			type = PatchImplementation.ANIMA;
+		}
+		else if (message.contains("marigold") || message.contains("rosemary") || message.contains("nasturtium")
+				|| message.contains("woad") || message.contains("limpwurt") || message.contains("lily"))
+		{
+			type = PatchImplementation.FLOWER;
+		}
+		else if (message.contains("barley") || message.contains("hammerstone") || message.contains("asgarnian")
+				|| message.contains("jute") || message.contains("yanillian") || message.contains("krandorian")
+				|| message.contains("wildblood"))
+		{
+			type = PatchImplementation.HOPS;
 		}
 
 		return type;
@@ -719,7 +741,13 @@ public class FarmingTracker
 		String latestTime = TabContentPanel.getFormattedEstimate(estimates.lastKey(), config.timeFormatMode());
 		String earliestProduce = estimates.get(estimates.firstKey());
 		String latestProduce = estimates.get(estimates.lastKey());
-		String patchType = currentPatches.get(0).getImplementation().toString().toLowerCase(Locale.ENGLISH);
+
+		String patchType = currentPatches.get(0).getImplementation().getName();
+		if (patchType.length() == 0)
+		{
+			patchType = currentPatches.get(0).getImplementation().toString().toLowerCase(Locale.ENGLISH);
+			patchType = patchType.replace('_', ' ');
+		}
 		String displayedName = earliestProduce.equals(latestProduce)
 				? earliestProduce : patchType.substring(0, 1).toUpperCase() + patchType.substring(1);
 
@@ -754,7 +782,6 @@ public class FarmingTracker
 
 	public void updateFarmingText(WorldPoint loc, String message)
 	{
-
 		Collection<FarmingRegion> regions = farmingWorld.getRegionsForLocation(loc);
 		for (FarmingRegion region : regions)
 		{
@@ -767,6 +794,12 @@ public class FarmingTracker
 			{
 				PatchImplementation type = getPatchImplementationFromString(message);
 				List<FarmingPatch> currentPatches = new ArrayList<>();
+
+				if (type.equals(PatchImplementation.HESPORI))
+				{
+					regionPatches = new ArrayList<>(farmingWorld.getTabs().get(Tab.SPECIAL));
+				}
+
 				for (FarmingPatch patch : regionPatches)
 				{
 					if (patch.getImplementation().equals(type))
@@ -774,6 +807,7 @@ public class FarmingTracker
 						currentPatches.add(patch);
 					}
 				}
+
 				writePredictedTime(currentPatches);
 			}
 		}

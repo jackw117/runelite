@@ -82,7 +82,6 @@ public class TimeTrackingPlugin extends Plugin
 			"(\\.)*" +
 		"|(It's )(getting|small,).*(darn big|bigger)(\\.)*" +
 		"|(This is about as big as it gets)(\\.)*" +
-		"|(A Spirit Tree)(\\.)*" +
 		"|(A fully grown )(Attas|Iasor|Kronos)( plant)(\\.)*" +
 		"|(This).*(plant looks like it is almost out of energy)(\\.)*" +
 		"|(A shrivelled plant\\.)"
@@ -331,3 +330,5 @@ public class TimeTrackingPlugin extends Plugin
 		}
 	}
 }
+
+//TODO: look into matching produce to object id, add compost to regex, break apart long functions
