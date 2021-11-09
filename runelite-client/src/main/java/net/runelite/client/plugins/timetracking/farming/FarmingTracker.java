@@ -702,6 +702,10 @@ public class FarmingTracker
 		{
 			type = PatchImplementation.TREE;
 		}
+		else if (message.contains("rotting"))
+		{
+			type = PatchImplementation.COMPOST;
+		}
 		else if (message.contains("attas") || message.contains("iasor") || message.contains("kronos"))
 		{
 			type = PatchImplementation.ANIMA;
@@ -721,63 +725,96 @@ public class FarmingTracker
 		return type;
 	}
 
-	private void writePredictedTime(List<FarmingPatch> currentPatches)
+	private SortedMap<Long, String> getPatchPredictionTimes(List<FarmingPatch> currentPatches)
 	{
-		final ChatMessageBuilder message;
 		SortedMap<Long, String> estimates = new TreeMap<>();
-
 		long unixNow = Instant.now().getEpochSecond();
 
 		for (FarmingPatch patch : currentPatches)
 		{
 			PatchPrediction prediction = predictPatch(patch);
+			assert prediction != null;
 			if (prediction.getCropState().equals(CropState.GROWING) && !prediction.getProduce().equals(Produce.WEEDS))
 			{
-				estimates.put(prediction.getDoneEstimate() - unixNow, prediction.getProduce().getName());
+				long predictedTime = prediction.getDoneEstimate() - unixNow;
+				if (estimates.containsKey(predictedTime))
+				{
+					estimates.put(predictedTime, getPatchType(patch));
+				}
+				else
+				{
+					estimates.put(predictedTime, prediction.getProduce().getName());
+				}
 			}
 		}
 
-		String earliestTime = TabContentPanel.getFormattedEstimate(estimates.firstKey(), config.timeFormatMode());
-		String latestTime = TabContentPanel.getFormattedEstimate(estimates.lastKey(), config.timeFormatMode());
-		String earliestProduce = estimates.get(estimates.firstKey());
-		String latestProduce = estimates.get(estimates.lastKey());
+		return estimates;
+	}
 
-		String patchType = currentPatches.get(0).getImplementation().getName();
+	private String getPatchType(FarmingPatch patch)
+	{
+		String patchType = patch.getImplementation().getName();
 		if (patchType.length() == 0)
 		{
-			patchType = currentPatches.get(0).getImplementation().toString().toLowerCase(Locale.ENGLISH);
+			patchType = patch.getImplementation().toString().toLowerCase(Locale.ENGLISH);
 			patchType = patchType.replace('_', ' ');
 		}
-		String displayedName = earliestProduce.equals(latestProduce)
-				? earliestProduce : patchType.substring(0, 1).toUpperCase() + patchType.substring(1);
+
+		return patchType.substring(0, 1).toUpperCase(Locale.ENGLISH) + patchType.substring(1);
+	}
+
+	private ChatMessageBuilder getPatchPredictionMessage(String earliestTime, String latestTime, String patchName)
+	{
+		ChatMessageBuilder message = new ChatMessageBuilder()
+				.append(ChatColorType.HIGHLIGHT)
+				.append(patchName)
+				.append(ChatColorType.NORMAL);
 
 		if (earliestTime.equals(latestTime))
 		{
-			message = new ChatMessageBuilder()
-					.append(ChatColorType.HIGHLIGHT)
-					.append(displayedName)
-					.append(ChatColorType.NORMAL)
-					.append(": done ")
+			message.append(": done ")
 					.append(ChatColorType.NORMAL)
 					.append(earliestTime);
 		}
 		else
 		{
-			message = new ChatMessageBuilder()
-					.append(ChatColorType.HIGHLIGHT)
-					.append(displayedName)
-					.append(ChatColorType.NORMAL)
-					.append(": earliest time done ")
+			message.append(": earliest time done ")
 					.append(ChatColorType.NORMAL)
 					.append(earliestTime)
 					.append(", latest time done ")
 					.append(latestTime);
 		}
 
+		return message;
+	}
+
+	private void writeObjectExamineMessage(ChatMessageBuilder message)
+	{
 		chatMessageManager.queue(QueuedMessage.builder()
-				.type(ChatMessageType.ITEM_EXAMINE)
+				.type(ChatMessageType.OBJECT_EXAMINE)
 				.runeLiteFormattedMessage(message.build())
 				.build());
+	}
+
+	private void writePredictedTime(List<FarmingPatch> currentPatches)
+	{
+		if (currentPatches.size() == 0)
+		{
+			return;
+		}
+
+		SortedMap<Long, String> estimates = getPatchPredictionTimes(currentPatches);
+
+		String earliestTime = TabContentPanel.getFormattedEstimate(estimates.firstKey(), config.timeFormatMode());
+		String latestTime = TabContentPanel.getFormattedEstimate(estimates.lastKey(), config.timeFormatMode());
+
+		String earliestProduce = estimates.get(estimates.firstKey());
+		String latestProduce = estimates.get(estimates.lastKey());
+		String patchName = earliestProduce.equals(latestProduce)
+				? earliestProduce : getPatchType(currentPatches.get(0));
+
+		ChatMessageBuilder message = getPatchPredictionMessage(earliestTime, latestTime, patchName);
+		writeObjectExamineMessage(message);
 	}
 
 	public void updateFarmingText(WorldPoint loc, String message)
@@ -786,6 +823,7 @@ public class FarmingTracker
 		for (FarmingRegion region : regions)
 		{
 			List<FarmingPatch> regionPatches = Arrays.asList(region.getPatches());
+
 			if (regionPatches.size() == 1)
 			{
 				writePredictedTime(regionPatches);
@@ -798,6 +836,10 @@ public class FarmingTracker
 				if (type.equals(PatchImplementation.HESPORI))
 				{
 					regionPatches = new ArrayList<>(farmingWorld.getTabs().get(Tab.SPECIAL));
+				}
+				else if (type.equals(PatchImplementation.COMPOST) && region.getName().equals("Farming Guild"))
+				{
+					type = PatchImplementation.GIANT_COMPOST;
 				}
 
 				for (FarmingPatch patch : regionPatches)
@@ -813,3 +855,5 @@ public class FarmingTracker
 		}
 	}
 }
+
+//TODO: add spirit tree and do testing
