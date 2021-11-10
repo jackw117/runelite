@@ -75,21 +75,18 @@ public class TimeTrackingPlugin extends Plugin
 	private static final String CONTRACT_COMPLETED = "You've completed a Farming Guild Contract. You should return to Guildmaster Jane.";
 
 	private static final Pattern FARMING_PATTERN = Pattern.compile(
-		"(?:.*)" +
-			"(?:growing in this |sown in this |planted in this |planted )" +
-			"(?:Farming |farming |tree |fruit tree |anima )*" +
-			"(?:patch|allotment|here)" +
+		"(.*)" +
+			"(growing in this |sown in this |planted in this |planted )" +
+			"(Farming |farming |tree |fruit tree |anima )*" +
+			"(patch|allotment|here)" +
 			"(\\.)*" +
 		"|(It's )(getting|small,).*(darn big|bigger)(\\.)*" +
 		"|(This is about as big as it gets)(\\.)*" +
 		"|(A fully grown )(Attas|Iasor|Kronos)( plant)(\\.)*" +
 		"|(This).*(plant looks like it is almost out of energy)(\\.)*" +
+		"|(A Spirit Tree\\.)" +
 		"|(A shrivelled plant\\.)" +
 		"|(Tomatoes|Vegetation)( is| are)( rotting in here)(( to make )(super)?(compost))?(\\.)"
-	);
-
-	private static final Pattern HERB_PATTERN = Pattern.compile(
-		"(?:.*)(?:herb)(?:.*)(?:in this patch\\.)"
 	);
 
 	@Inject

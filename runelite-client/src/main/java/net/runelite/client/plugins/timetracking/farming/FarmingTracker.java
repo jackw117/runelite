@@ -698,6 +698,10 @@ public class FarmingTracker
 		{
 			type = PatchImplementation.CRYSTAL_TREE;
 		}
+		else if (message.contains("spirit"))
+		{
+			type = PatchImplementation.SPIRIT_TREE;
+		}
 		else if (message.contains("tree"))
 		{
 			type = PatchImplementation.TREE;
@@ -737,13 +741,16 @@ public class FarmingTracker
 			if (prediction.getCropState().equals(CropState.GROWING) && !prediction.getProduce().equals(Produce.WEEDS))
 			{
 				long predictedTime = prediction.getDoneEstimate() - unixNow;
-				if (estimates.containsKey(predictedTime))
+				if (predictedTime > 0)
 				{
-					estimates.put(predictedTime, getPatchType(patch));
-				}
-				else
-				{
-					estimates.put(predictedTime, prediction.getProduce().getName());
+					if (estimates.containsKey(predictedTime))
+					{
+						estimates.put(predictedTime, getPatchType(patch));
+					}
+					else
+					{
+						estimates.put(predictedTime, prediction.getProduce().getName());
+					}
 				}
 			}
 		}
@@ -805,6 +812,11 @@ public class FarmingTracker
 
 		SortedMap<Long, String> estimates = getPatchPredictionTimes(currentPatches);
 
+		if (estimates.size() == 0)
+		{
+			return;
+		}
+
 		String earliestTime = TabContentPanel.getFormattedEstimate(estimates.firstKey(), config.timeFormatMode());
 		String latestTime = TabContentPanel.getFormattedEstimate(estimates.lastKey(), config.timeFormatMode());
 
@@ -855,5 +867,3 @@ public class FarmingTracker
 		}
 	}
 }
-
-//TODO: add spirit tree and do testing
