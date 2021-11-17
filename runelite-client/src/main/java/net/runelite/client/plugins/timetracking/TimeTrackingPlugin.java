@@ -263,7 +263,8 @@ public class TimeTrackingPlugin extends Plugin
 	@Subscribe
 	public void onChatMessage(ChatMessage event)
 	{
-		if (event.getType() == ChatMessageType.OBJECT_EXAMINE)
+		if (configManager.getConfig(TimeTrackingConfig.class).farmingExamineTime()
+				&& event.getType() == ChatMessageType.OBJECT_EXAMINE)
 		{
 			String message = event.getMessage();
 			if (FARMING_PATTERN.matcher(message).matches())
@@ -275,7 +276,7 @@ public class TimeTrackingPlugin extends Plugin
 					return;
 				}
 
-				farmingTracker.updateFarmingText(loc, message.toLowerCase(Locale.ENGLISH));
+				farmingTracker.setFarmingExamineText(loc, message.toLowerCase(Locale.ENGLISH));
 			}
 			return;
 		}

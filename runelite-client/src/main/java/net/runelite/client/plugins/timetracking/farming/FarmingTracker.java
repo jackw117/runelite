@@ -637,7 +637,7 @@ public class FarmingTracker
 
 	private PatchImplementation getPatchImplementationFromString(String message)
 	{
-		PatchImplementation type = null;
+		PatchImplementation type;
 		if (message.contains("herb"))
 		{
 			type = PatchImplementation.HERB;
@@ -725,6 +725,10 @@ public class FarmingTracker
 		{
 			type = PatchImplementation.HOPS;
 		}
+		else
+		{
+			throw new IllegalArgumentException("Message: " + message + " does not correspond to any farming crop.");
+		}
 
 		return type;
 	}
@@ -795,14 +799,6 @@ public class FarmingTracker
 		return message;
 	}
 
-	private void writeObjectExamineMessage(ChatMessageBuilder message)
-	{
-		chatMessageManager.queue(QueuedMessage.builder()
-				.type(ChatMessageType.OBJECT_EXAMINE)
-				.runeLiteFormattedMessage(message.build())
-				.build());
-	}
-
 	private void writePredictedTime(List<FarmingPatch> currentPatches)
 	{
 		if (currentPatches.size() == 0)
@@ -826,12 +822,23 @@ public class FarmingTracker
 				? earliestProduce : getPatchType(currentPatches.get(0));
 
 		ChatMessageBuilder message = getPatchPredictionMessage(earliestTime, latestTime, patchName);
-		writeObjectExamineMessage(message);
+		chatMessageManager.queue(QueuedMessage.builder()
+				.type(ChatMessageType.OBJECT_EXAMINE)
+				.runeLiteFormattedMessage(message.build())
+				.build());
 	}
 
-	public void updateFarmingText(WorldPoint loc, String message)
+	/**
+	 * This method is used to get the predicted finish times of each of the farming patches that
+	 * correspond to the given object examine text, then write these times out to the chat box.
+	 *
+	 * @param loc		The current location of the player.
+	 * @param message	The text from the object examine.
+	 */
+	public void setFarmingExamineText(WorldPoint loc, String message)
 	{
 		Collection<FarmingRegion> regions = farmingWorld.getRegionsForLocation(loc);
+
 		for (FarmingRegion region : regions)
 		{
 			List<FarmingPatch> regionPatches = Arrays.asList(region.getPatches());
