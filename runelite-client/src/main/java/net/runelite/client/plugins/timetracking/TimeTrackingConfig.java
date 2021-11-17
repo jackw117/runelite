@@ -125,7 +125,7 @@ public interface TimeTrackingConfig extends Config
 
 	@ConfigItem(
 		keyName = "farmingExamineTime",
-		name = "Show time on examine",
+		name = "Show farming time on examine",
 		description = "When a farming patch is examined, the predicted finish time will be displayed as an additional examine message.",
 		position = 8
 	)
