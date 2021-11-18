@@ -635,6 +635,12 @@ public class FarmingTracker
 		notifier.notify(stringBuilder.toString());
 	}
 
+	/**
+	 * Matches a farming patch examine message to the corresponding type of patch.
+	 *
+	 * @param message The examine text corresponding to a farming patch.
+	 * @return A PatchImplementation value matching the given examine text.
+	 */
 	private PatchImplementation getPatchImplementationFromString(String message)
 	{
 		PatchImplementation type;
@@ -733,6 +739,12 @@ public class FarmingTracker
 		return type;
 	}
 
+	/**
+	 * Gets a map of the predicted times to the name of the produce or patch associated with the time.
+	 *
+	 * @param currentPatches List of the farming patches that match the examine text.
+	 * @return Map of predicted times to produce/patch names.
+	 */
 	private SortedMap<Long, String> getPatchPredictionTimes(List<FarmingPatch> currentPatches)
 	{
 		SortedMap<Long, String> estimates = new TreeMap<>();
@@ -762,6 +774,12 @@ public class FarmingTracker
 		return estimates;
 	}
 
+	/**
+	 * Gets a readable name for the type of the given patch.
+	 *
+	 * @param patch The current farming patch being examined.
+	 * @return The name of the type of patch.
+	 */
 	private String getPatchType(FarmingPatch patch)
 	{
 		String patchType = patch.getImplementation().getName();
@@ -774,6 +792,14 @@ public class FarmingTracker
 		return patchType.substring(0, 1).toUpperCase(Locale.ENGLISH) + patchType.substring(1);
 	}
 
+	/**
+	 * Gets the message to be written to the chat box.
+	 *
+	 * @param earliestTime The earliest patch completion time.
+	 * @param latestTime The latest patch completion time.
+	 * @param patchName The name to use to indicate which patch or patches were examined.
+	 * @return The message to write to the chat box.
+	 */
 	private ChatMessageBuilder getPatchPredictionMessage(String earliestTime, String latestTime, String patchName)
 	{
 		ChatMessageBuilder message = new ChatMessageBuilder()
@@ -799,6 +825,11 @@ public class FarmingTracker
 		return message;
 	}
 
+	/**
+	 * Writes the predicted completion times for the patches matching the examine text to the chat box.
+	 *
+	 * @param currentPatches The list of patches that correspond with the current examine text.
+	 */
 	private void writePredictedTime(List<FarmingPatch> currentPatches)
 	{
 		if (currentPatches.size() == 0)
@@ -829,8 +860,8 @@ public class FarmingTracker
 	}
 
 	/**
-	 * This method is used to get the predicted finish times of each of the farming patches that
-	 * correspond to the given object examine text, then write these times out to the chat box.
+	 * Gets the predicted finish times of each of the farming patches that correspond to the
+	 * given object examine text, then writes these times out to the chat box.
 	 *
 	 * @param loc		The current location of the player.
 	 * @param message	The text from the object examine.
