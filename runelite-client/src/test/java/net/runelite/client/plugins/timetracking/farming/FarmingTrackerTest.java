@@ -51,6 +51,7 @@ import net.runelite.client.config.RuneLiteConfig;
 import net.runelite.client.config.RuneScapeProfile;
 import net.runelite.client.config.RuneScapeProfileType;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.plugins.timetracking.Tab;
 import net.runelite.client.plugins.timetracking.TimeTrackingConfig;
 import net.runelite.client.plugins.timetracking.TimeTrackingPlugin;
 import org.junit.Before;
@@ -59,12 +60,16 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -75,6 +80,9 @@ public class FarmingTrackerTest
 
 	@Inject
 	private TimeTrackingPlugin timeTrackingPlugin;
+
+	@Inject
+	private FarmingContractManager farmingContractManager;
 
 	@Mock
 	@Bind
@@ -164,7 +172,7 @@ public class FarmingTrackerTest
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testBadMessage()
+	public void testNoCorrespondingFarmingPatchForMessage()
 	{
 		WorldPoint loc = new WorldPoint(1247, 3726, 0);
 		String message = "Did you ever hear the Tragedy of Darth Plagueis the Wise?";
@@ -186,50 +194,16 @@ public class FarmingTrackerTest
 	}
 
 	@Test
-	public void testFarmingExamineText()
+	public void testFarmingRegexFail()
 	{
-		WorldPoint loc = new WorldPoint(1, 1, 0);
-		String message = "a herb is growing in this patch.";
-
-		FarmingRegion region = new FarmingRegion("Ardougne", 10548, false,
-				new FarmingPatch("North", Varbits.FARMING_4771, PatchImplementation.ALLOTMENT),
-				new FarmingPatch("South", Varbits.FARMING_4772, PatchImplementation.ALLOTMENT),
-				new FarmingPatch("", Varbits.FARMING_4773, PatchImplementation.FLOWER),
-				new FarmingPatch("", Varbits.FARMING_4774, PatchImplementation.HERB),
-				new FarmingPatch("", Varbits.FARMING_4775, PatchImplementation.COMPOST)
-		);
-
-		List<FarmingRegion> list = new ArrayList<>();
-		list.add(region);
-		FarmingPatch patch = region.getPatches()[3];
-		patch.setRegion(region);
-
-		long time =  Instant.now().getEpochSecond() + 10000;
-		PatchPrediction prediction = new PatchPrediction(
-				Produce.RANARR,
-				CropState.GROWING,
-				time,
-				1,
-				3
-		);
-
-		when(farmingWorld.getRegionsForLocation(loc)).thenReturn(list);
-		doReturn(prediction).when(farmingTracker).predictPatch(patch, null);
-//		TODO: get proper return type
-//		when(configManager.getConfiguration(TimeTrackingConfig.CONFIG_GROUP, null, "10548.4774")).thenReturn("32:10548");
-		when(farmingTracker.predictPatch(patch, null)).thenReturn(prediction);
-
-		ArgumentCaptor<QueuedMessage> argumentCaptor = ArgumentCaptor.forClass(QueuedMessage.class);
-		farmingTracker.setFarmingExamineText(loc, message);
-		verify(chatMessageManager).queue(argumentCaptor.capture());
-	}
-
-	@Test(expected = NullPointerException.class)
-	public void testFarmingMessageWhenConfigIsFalse()
-	{
-		String gameMessage = "A herb is growing in this patch.";
+		String gameMessage = "Did you ever hear the Tragedy of Darth Plagueis the Wise?";
 		ChatMessage chatMessage = new ChatMessage(null, ChatMessageType.OBJECT_EXAMINE, "", gameMessage, "", 0);
-		when(configManager.getConfig(TimeTrackingConfig.class).farmingExamineTime()).thenReturn(false);
+		configManager.setConfiguration("timetracking", "farmingExamineTime", true);
+
+		when(configManager.getConfig(TimeTrackingConfig.class)).thenReturn(config);
+		when(config.farmingExamineTime()).thenReturn(true);
+
 		timeTrackingPlugin.onChatMessage(chatMessage);
+		assertNull(farmingContractManager.getContract());
 	}
 }
