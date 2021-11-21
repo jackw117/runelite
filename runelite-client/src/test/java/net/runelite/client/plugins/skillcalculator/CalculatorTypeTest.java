@@ -24,12 +24,45 @@
  */
 package net.runelite.client.plugins.skillcalculator;
 
+import com.google.inject.testing.fieldbinder.Bind;
+import net.runelite.api.Client;
+import net.runelite.api.Skill;
+import net.runelite.client.callback.ClientThread;
+import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.skillcalculator.skills.SkillAction;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
+import javax.inject.Inject;
+
+@RunWith(MockitoJUnitRunner.class)
 public class CalculatorTypeTest
 {
+	@Inject
+	SkillCalculatorPlugin skillCalculatorPlugin;
+
+	@Mock
+	@Bind
+	Client client;
+
+	@Mock
+	@Bind
+	ClientThread clientThread;
+
+	@Mock
+	@Bind
+	SpriteManager spriteManager;
+
+	@Mock
+	@Bind
+	ItemManager itemManager;
+
 	@Test
 	public void skillActionsInLevelOrder()
 	{
@@ -47,5 +80,28 @@ public class CalculatorTypeTest
 				level = skillAction.getLevel();
 			}
 		}
+	}
+
+	@Test
+	public void testGetSetTargetAmount()
+	{
+		final UICalculatorInputArea uiInput = new UICalculatorInputArea();
+
+		uiInput.setTargetAmountInput("a");
+		int targetAmount_1 = uiInput.getTargetAmountInput();
+
+		uiInput.setTargetAmountInput("20000000000000000000000000000");
+		int targetAmount_2 = uiInput.getTargetAmountInput();
+
+		uiInput.setTargetAmountInput(126);
+		int targetAmount_3 = uiInput.getTargetAmountInput();
+
+		uiInput.setTargetAmountInput("25a6");
+		int targetAmount_4 = uiInput.getTargetAmountInput();
+
+		assertEquals(0, targetAmount_1);
+		assertEquals(0, targetAmount_2);
+		assertEquals(126, targetAmount_3);
+		assertEquals(256, targetAmount_4);
 	}
 }

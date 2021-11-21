@@ -185,6 +185,11 @@ class SkillCalculator extends JPanel
 		updateInputFields();
 	}
 
+	/**
+	 * Gets the combined experience value from each of the selected slots.
+	 *
+	 * @return The calculated combined xp.
+	 */
 	private int getCombinedActionXP()
 	{
 		int xp = 0;
@@ -433,6 +438,10 @@ class SkillCalculator extends JPanel
 		updateInputFields();
 	}
 
+	/**
+	 * Calculates the amount of experience needed and the target level based on the value in the
+	 * target amount field.
+	 */
 	private void onFieldTargetAmountUpdated()
 	{
 		int xp = getCombinedActionXP();
