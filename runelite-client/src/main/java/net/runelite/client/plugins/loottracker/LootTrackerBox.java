@@ -51,7 +51,10 @@ import javax.swing.border.EmptyBorder;
 import lombok.AccessLevel;
 import lombok.Getter;
 import net.runelite.api.ItemID;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.plugins.itemidentification.ItemIdentification;
+import net.runelite.client.plugins.itemidentification.ItemIdentificationConfig;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.util.AsyncBufferedImage;
@@ -84,6 +87,8 @@ class LootTrackerBox extends JPanel
 	private final boolean hideIgnoredItems;
 	private final BiConsumer<String, Boolean> onItemToggle;
 
+	private final ConfigManager configManager;
+
 	LootTrackerBox(
 		final ItemManager itemManager,
 		final String id,
@@ -94,7 +99,8 @@ class LootTrackerBox extends JPanel
 		final boolean showPriceType,
 		final BiConsumer<String, Boolean> onItemToggle,
 		final BiConsumer<String, Boolean> onEventToggle,
-		final boolean eventIgnored)
+		final boolean eventIgnored,
+		final ConfigManager configManager)
 	{
 		this.id = id;
 		this.lootRecordType = lootRecordType;
@@ -103,6 +109,7 @@ class LootTrackerBox extends JPanel
 		this.hideIgnoredItems = hideIgnoredItems;
 		this.priceType = priceType;
 		this.showPriceType = showPriceType;
+		this.configManager = configManager;
 
 		setLayout(new BorderLayout(0, 1));
 		setBorder(new EmptyBorder(5, 0, 0, 0));
@@ -361,6 +368,9 @@ class LootTrackerBox extends JPanel
 				});
 
 				popupMenu.add(toggle);
+
+				// Check if item matches item identification
+				testFunction(item);
 			}
 
 			itemContainer.add(slotContainer);
@@ -403,5 +413,20 @@ class LootTrackerBox extends JPanel
 		}
 		sb.append("</html>");
 		return sb.toString();
+	}
+
+	private void testFunction(LootTrackerItem item)
+	{
+		int itemId = item.getId();
+		ItemIdentification itemIdentification = ItemIdentification.get(itemId);
+		ItemIdentificationConfig itemIdentificationConfig = configManager.getConfig(ItemIdentificationConfig.class);
+
+		if (itemIdentification == null || !itemIdentification.getType().getEnabled().test(itemIdentificationConfig))
+		{
+			return;
+		}
+
+		// TODO: get overlay to add to the image
+		int a = 1;
 	}
 }

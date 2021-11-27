@@ -27,10 +27,13 @@ package net.runelite.client.plugins.itemidentification;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import java.util.function.Predicate;
+
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import net.runelite.api.ItemID;
 
-enum ItemIdentification
+public enum ItemIdentification
 {
 	//Seeds
 	GUAM_SEED(Type.SEED_HERB, "Guam", "G", ItemID.GUAM_SEED),
@@ -428,6 +431,7 @@ enum ItemIdentification
 	REVENANT_CAVE_TELEPORT(Type.SCROLL, "Rev cave", "REV", ItemID.REVENANT_CAVE_TELEPORT),
 	WATSON_TELEPORT(Type.SCROLL, "Watson", "WATS", ItemID.WATSON_TELEPORT);
 
+	@Getter(AccessLevel.PUBLIC)
 	final Type type;
 	final String medName;
 	final String shortName;
@@ -458,13 +462,13 @@ enum ItemIdentification
 		itemIdentifications = builder.build();
 	}
 
-	static ItemIdentification get(int id)
+	public static ItemIdentification get(int id)
 	{
 		return itemIdentifications.get(id);
 	}
 
 	@AllArgsConstructor
-	enum Type
+	public enum Type
 	{
 		SEED_HERB(ItemIdentificationConfig::showHerbSeeds),
 		SEED_BERRY(ItemIdentificationConfig::showBerrySeeds),
@@ -489,6 +493,7 @@ enum ItemIdentification
 		TABLET(ItemIdentificationConfig::showTablets),
 		SCROLL(ItemIdentificationConfig::showTeleportScrolls);
 
+		@Getter(AccessLevel.PUBLIC)
 		final Predicate<ItemIdentificationConfig> enabled;
 	}
 }

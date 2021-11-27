@@ -271,6 +271,9 @@ public class LootTrackerPlugin extends Plugin
 	private LootTrackerConfig config;
 
 	@Inject
+	private ConfigManager configManager;
+
+	@Inject
 	private Client client;
 
 	@Inject
@@ -389,7 +392,7 @@ public class LootTrackerPlugin extends Plugin
 	{
 		ignoredItems = Text.fromCSV(config.getIgnoredItems());
 		ignoredEvents = Text.fromCSV(config.getIgnoredEvents());
-		panel = new LootTrackerPanel(this, itemManager, config);
+		panel = new LootTrackerPanel(this, itemManager, config, configManager);
 		spriteManager.getSpriteAsync(SpriteID.TAB_INVENTORY, 0, panel::loadHeaderIcon);
 
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "panel_icon.png");

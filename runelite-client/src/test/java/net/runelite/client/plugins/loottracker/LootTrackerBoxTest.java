@@ -26,6 +26,7 @@ package net.runelite.client.plugins.loottracker;
 
 import java.util.Arrays;
 import net.runelite.api.ItemID;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
 import net.runelite.http.api.loottracker.LootRecordType;
 import static org.junit.Assert.assertEquals;
@@ -46,7 +47,8 @@ public class LootTrackerBoxTest
 			LootTrackerPriceType.GRAND_EXCHANGE,
 			false,
 			null, null,
-			false);
+			false,
+			mock(ConfigManager.class));
 
 		LootTrackerItem[] items = new LootTrackerItem[]{
 			new LootTrackerItem(ItemID.CLUE_SCROLL_MEDIUM, "Clue scroll (medium)", 1, 0, 0, false),
