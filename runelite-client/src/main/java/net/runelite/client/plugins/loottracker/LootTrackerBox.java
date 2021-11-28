@@ -417,6 +417,7 @@ class LootTrackerBox extends JPanel
 
 	private void testFunction(LootTrackerItem item)
 	{
+
 		int itemId = item.getId();
 		ItemIdentification itemIdentification = ItemIdentification.get(itemId);
 		ItemIdentificationConfig itemIdentificationConfig = configManager.getConfig(ItemIdentificationConfig.class);

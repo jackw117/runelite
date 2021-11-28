@@ -433,7 +433,9 @@ public enum ItemIdentification
 
 	@Getter(AccessLevel.PUBLIC)
 	final Type type;
+	@Getter(AccessLevel.PUBLIC)
 	final String medName;
+	@Getter(AccessLevel.PUBLIC)
 	final String shortName;
 	final int[] itemIDs;
 

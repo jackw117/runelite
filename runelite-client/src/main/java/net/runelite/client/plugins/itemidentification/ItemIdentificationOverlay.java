@@ -39,7 +39,7 @@ import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.WidgetItemOverlay;
 import net.runelite.client.ui.overlay.components.TextComponent;
 
-class ItemIdentificationOverlay extends WidgetItemOverlay
+public class ItemIdentificationOverlay extends WidgetItemOverlay
 {
 	private final ItemIdentificationConfig config;
 	private final ItemManager itemManager;

@@ -104,9 +104,12 @@ import net.runelite.client.game.LootManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.itemidentification.ItemIdentificationConfig;
+import net.runelite.client.plugins.itemidentification.ItemIdentificationOverlay;
 import net.runelite.client.task.Schedule;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.QuantityFormatter;
 import net.runelite.client.util.Text;
@@ -294,6 +297,12 @@ public class LootTrackerPlugin extends Plugin
 	@Inject
 	private LootManager lootManager;
 
+	@Inject
+	private OverlayManager overlayManager;
+
+	@Inject
+	private LootTrackerOverlay overlay;
+
 	private LootTrackerPanel panel;
 	private NavigationButton navButton;
 	@VisibleForTesting
@@ -390,6 +399,8 @@ public class LootTrackerPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
+		overlayManager.add(overlay);
+
 		ignoredItems = Text.fromCSV(config.getIgnoredItems());
 		ignoredEvents = Text.fromCSV(config.getIgnoredEvents());
 		panel = new LootTrackerPanel(this, itemManager, config, configManager);
@@ -454,6 +465,7 @@ public class LootTrackerPlugin extends Plugin
 	@Override
 	protected void shutDown()
 	{
+		overlayManager.remove(overlay);
 		submitLoot();
 		clientToolbar.removeNavigation(navButton);
 		lootTrackerClient.setUuid(null);
